@@ -1,0 +1,158 @@
+📌 Question (Write this in your assignment):
+
+Write a C# program that takes input of multiple students (Name, Age, City, Marks) and perform LINQ operations such as:
+Where, Select, OrderBy, OrderByDescending, Max, Min, Count, Average and display results.       
+
+
+
+frontend:
+
+<%@ Page Language="C#" AutoEventWireup="true" CodeFile="LINQ.aspx.cs" Inherits="LINQ" %>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LINQ Student Operations</title>
+</head>
+<body>
+
+<h2>LINQ Student Operations (User Input)</h2>
+
+<!-- Input fields for student details -->
+Name:
+<asp:TextBox ID="txtName" runat="server"></asp:TextBox><br /><br />
+
+Age:
+<asp:TextBox ID="txtAge" runat="server"></asp:TextBox><br /><br />
+
+City:
+<asp:TextBox ID="txtCity" runat="server"></asp:TextBox><br /><br />
+
+Marks:
+<asp:TextBox ID="txtMarks" runat="server"></asp:TextBox><br /><br />
+
+<!-- Add Student Button -->
+<asp:Button ID="btnAdd" runat="server" Text="Add Student" OnClick="btnAdd_Click" /><br /><br />
+
+<hr />
+
+<!-- Button to Apply LINQ -->
+<asp:Button ID="btnLinq" runat="server" Text="Run LINQ Operations" OnClick="btnLinq_Click" /><br /><br />
+
+<!-- Output label -->
+<asp:Label ID="lblOutput" runat="server" Font-Names="Arial" Font-Size="Large"></asp:Label>
+
+</body>
+</html>
+
+
+
+
+
+C#
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+public partial class LINQ : System.Web.UI.Page
+{
+    // List to store students (Session-based)
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            // Create empty list on first load
+            Session["students"] = new List<Student>();
+        }
+    }
+
+    // ---------- Student CLASS ----------
+    public class Student
+    {
+        public string Name;
+        public int Age;
+        public string City;
+        public int Marks;
+    }
+
+    // ---------- ADD BUTTON ----------
+    protected void btnAdd_Click(object sender, EventArgs e)
+    {
+        // Read user inputs
+        string n = txtName.Text;
+        int a = int.Parse(txtAge.Text);      // convert string to integer
+        string c = txtCity.Text;
+        int m = int.Parse(txtMarks.Text);    // convert string to integer
+
+        // Create new student object
+        Student s = new Student
+        {
+            Name = n,
+            Age = a,
+            City = c,
+            Marks = m
+        };
+
+        // Add student to list inside session
+        List<Student> list = (List<Student>)Session["students"];
+        list.Add(s);
+        Session["students"] = list;
+
+        lblOutput.Text = "<br/> Student Added Successfully!<br/>";
+    }
+
+    // ---------- LINQ BUTTON ----------
+    protected void btnLinq_Click(object sender, EventArgs e)
+    {
+        // Get the list from session
+        List<Student> list = (List<Student>)Session["students"];
+
+        string result = "<h3>LINQ Results</h3>";
+
+        // 1. WHERE (Marks > 50)
+        var pass = list.Where(s => s.Marks > 50);
+        result += "<b>Students with Marks > 50:</b><br/>";
+        foreach (var s in pass) result += s.Name + " - " + s.Marks + "<br/>";
+
+        // 2. SELECT (Only Names)
+        var names = list.Select(s => s.Name);
+        result += "<br/><b>Only Names:</b><br/>";
+        foreach (var n in names) result += n + "<br/>";
+
+        // 3. ORDERBY ASC
+        var asc = list.OrderBy(s => s.Marks);
+        result += "<br/><b>Marks Ascending:</b><br/>";
+        foreach (var s in asc) result += s.Name + " - " + s.Marks + "<br/>";
+
+        // 4. ORDERBY DESC
+        var desc = list.OrderByDescending(s => s.Marks);
+        result += "<br/><b>Marks Descending:</b><br/>";
+        foreach (var s in desc) result += s.Name + " - " + s.Marks + "<br/>";
+
+        // 5. MAX MARKS
+        result += "<br/><b>Highest Marks:</b> " + list.Max(s => s.Marks);
+
+        // 6. MIN MARKS
+        result += "<br/><b>Lowest Marks:</b> " + list.Min(s => s.Marks);
+
+        // 7. COUNT
+        result += "<br/><b>Total Students:</b> " + list.Count;
+
+        // 8. AVERAGE
+        result += "<br/><b>Average Marks:</b> " + list.Average(s => s.Marks);
+
+        // 9. GROUP BY CITY
+        var byCity = list.GroupBy(s => s.City);
+        result += "<br/><br/><b>Group By City:</b><br/>";
+        foreach (var g in byCity)
+        {
+            result += "<br/>City: <b>" + g.Key + "</b><br/>";
+            foreach (var s in g) result += " - " + s.Name + " (" + s.Marks + ")<br/>";
+        }
+
+        // Display final result
+        lblOutput.Text = result;
+    }
+}
